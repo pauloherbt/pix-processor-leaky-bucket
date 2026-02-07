@@ -1,6 +1,6 @@
 import { GraphQLFieldConfigMap } from 'graphql';
 import { PixKeyResultType } from './pix.types';
-import { generatePix } from '../../resolvers/pix/generate-pix';
+import { generatePix } from '../../graphql/resolvers/generate-pix';
 
 export const pixMutations: GraphQLFieldConfigMap<any, any> = {
   generatePix: {
