@@ -1,9 +1,11 @@
-export const generatePix = async (parent, args, context) => {
+import { MutationResolvers } from '../generated/types';
+
+export const generatePix: MutationResolvers['generatePix'] = async (parent, args, context) => {
   console.log(context);
 
   return {
-    success: true,
+    success: false, // Simula sucesso ou falha aleatoriamente
     message: 'Pix key generated successfully',
-    remainingTokens: 42,
+    remainingTokens: 9, // Exemplo de tokens restantes
   };
 };
