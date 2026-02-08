@@ -3,16 +3,17 @@ import { gql } from 'graphql-tag';
 const typeDefs = gql`
   type PixKeyResult {
     success: Boolean!
-    message: String
-    remainingTokens: Int
+    message: String!
   }
 
   type Query {
-    _empty: String
+    me: String
   }
 
   type Mutation {
     generatePix(key: String!, value: Float!): PixKeyResult!
+    login(email: String!, password: String!): String!
+    register(email: String!, password: String!, name: String!): String!
   }
 `;
 

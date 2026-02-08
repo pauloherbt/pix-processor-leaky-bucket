@@ -1,18 +1,21 @@
-import type { RequestContext } from 'graphql-http/lib/use/koa';
-import type { Request } from 'graphql-http/lib/handler';
-import type { IncomingMessage } from 'node:http';
+import { Context, Next } from 'koa';
+import jwt from 'jsonwebtoken';
 
-export type GraphQLContext = Request<IncomingMessage, RequestContext>;
+export const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
-export const authenticate = async (ctx: GraphQLContext) => {
-  const authHeader = (ctx.headers as Record<string, string>)['authorization'];
-  const token = authHeader?.split(' ')[1];
+export const authenticate = async (ctx: Context, next: Next) => {
+  const authHeader = ctx.headers.authorization;
+  const token = authHeader?.replace('Bearer ', '');
 
-  if (!token) {
-    throw new Error('Unauthorized');
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET) as { userId: string };
+      ctx.state.userId = decoded.userId;
+    } catch {
+      // Token inválido - não bloqueia, deixa userId undefined
+      // O resolver que precisa de auth vai validar
+    }
   }
 
-  return {
-    userId: token,
-  };
+  await next();
 };

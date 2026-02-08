@@ -1,11 +1,13 @@
+import { login } from './login';
 import { Resolvers } from '../generated/types';
 import { generatePix } from './generate-pix';
-
-import { withRateLimit } from '../../middlewares/rate-limiter';
+import { register } from './create-user';
 
 const resolvers: Resolvers = {
   Mutation: {
-    generatePix: withRateLimit(generatePix),
+    generatePix,
+    register,
+    login,
   },
 };
 

@@ -1,36 +1,14 @@
-import { GraphQLResolveInfo } from 'graphql';
-
+import { Context, Next } from 'koa';
 export interface Bucket {
   tokens: number;
   lastRefillAt: Date;
 }
 
-export interface RateLimitContext {
-  userId: string;
-  [key: string]: unknown;
-}
-
-// Interface mínima que o resultado da mutation deve ter
-interface MutationResultBase {
-  success?: boolean;
-  message?: string | null;
-  remainingTokens?: number | null; // Opcional na entrada, mas será preenchido na saída
-  [key: string]: any;
-}
-
-// Tipo Genérico para uma Função Resolver isolada
-type ResolverFn<TArgs, TResult> = (
-  parent: any,
-  args: TArgs,
-  context: RateLimitContext,
-  info: GraphQLResolveInfo,
-) => Promise<TResult> | TResult;
-
 const MAX_TOKENS = 10;
 const REFILL_INTERVAL_MS = 60 * 60 * 1000;
 
 const buckets: Record<string, Bucket> = {
-  '123': {
+  '2': {
     tokens: 10,
     lastRefillAt: new Date('2026-02-07T00:00:00.000Z'),
   },
@@ -64,7 +42,7 @@ function refillBucket(bucket: Bucket) {
 
 function updateBucket(userId: string, bucket: Bucket): Promise<void> {
   // Update bucket in database or cache
-  buckets[userId] = bucket;
+  buckets[userId] = { ...bucket };
   return;
 }
 
@@ -74,30 +52,36 @@ function hasBucketChanged(oldBucket: Bucket, newBucket: Bucket): boolean {
     oldBucket.lastRefillAt.getTime() !== newBucket.lastRefillAt.getTime()
   );
 }
-export const withRateLimit =
-  <TArgs, TResult extends MutationResultBase>(
-    next: ResolverFn<TArgs, TResult>,
-  ): ResolverFn<TArgs, TResult> =>
-  async (parent, args, context, info) => {
-    const bucket = await getBucketForUser(context.userId);
-    console.log('Bucket before refill:', bucket);
 
-    const updatedBucket = refillBucket(bucket);
-    console.log('Bucket after refill:', updatedBucket);
+export const withRateLimit = async (ctx: Context, next: Next) => {
+  const identifier = ctx.state.userId;
 
-    if (updatedBucket.tokens < 1) {
-      throw new Error('Rate limit exceeded');
-    }
+  if (!identifier) {
+    await next();
+    return;
+  }
 
-    const result = await next(parent, args, context, info);
+  const bucket = await getBucketForUser(identifier);
 
-    if (!result.success) {
-      updatedBucket.tokens -= 1;
-    }
+  const updatedBucket = refillBucket(bucket);
 
-    if (hasBucketChanged(bucket, updatedBucket)) {
-      await updateBucket(context.userId, updatedBucket);
-    }
+  if (updatedBucket.tokens < 1) {
+    throw new Error('Rate limit exceeded');
+  }
 
-    return result as TResult;
+  ctx.state.bucket = updatedBucket;
+  await next();
+
+  const result = typeof ctx.body === 'string' ? JSON.parse(ctx.body) : ctx.body;
+  if (!result.success) {
+    updatedBucket.tokens -= 1;
+  }
+
+  if (hasBucketChanged(bucket, updatedBucket)) {
+    await updateBucket(identifier, updatedBucket);
+  }
+
+  ctx.body = {
+    ...result,
   };
+};

@@ -19,6 +19,8 @@ export type Scalars = {
 export type Mutation = {
   __typename?: 'Mutation';
   generatePix: PixKeyResult;
+  login: Scalars['String']['output'];
+  register: Scalars['String']['output'];
 };
 
 
@@ -27,11 +29,28 @@ export type MutationGeneratePixArgs = {
   value: Scalars['Float']['input'];
 };
 
+
+export type MutationLoginArgs = {
+  email: Scalars['String']['input'];
+  password: Scalars['String']['input'];
+};
+
+
+export type MutationRegisterArgs = {
+  email: Scalars['String']['input'];
+  name: Scalars['String']['input'];
+  password: Scalars['String']['input'];
+};
+
 export type PixKeyResult = {
   __typename?: 'PixKeyResult';
-  message?: Maybe<Scalars['String']['output']>;
-  remainingTokens?: Maybe<Scalars['Int']['output']>;
+  message: Scalars['String']['output'];
   success: Scalars['Boolean']['output'];
+};
+
+export type Query = {
+  __typename?: 'Query';
+  me?: Maybe<Scalars['String']['output']>;
 };
 
 
@@ -109,9 +128,9 @@ export type DirectiveResolverFn<TResult = Record<PropertyKey, never>, TParent = 
 export type ResolversTypes = {
   Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
-  Int: ResolverTypeWrapper<Scalars['Int']['output']>;
   Mutation: ResolverTypeWrapper<Record<PropertyKey, never>>;
   PixKeyResult: ResolverTypeWrapper<PixKeyResult>;
+  Query: ResolverTypeWrapper<Record<PropertyKey, never>>;
   String: ResolverTypeWrapper<Scalars['String']['output']>;
 };
 
@@ -119,24 +138,30 @@ export type ResolversTypes = {
 export type ResolversParentTypes = {
   Boolean: Scalars['Boolean']['output'];
   Float: Scalars['Float']['output'];
-  Int: Scalars['Int']['output'];
   Mutation: Record<PropertyKey, never>;
   PixKeyResult: PixKeyResult;
+  Query: Record<PropertyKey, never>;
   String: Scalars['String']['output'];
 };
 
 export type MutationResolvers<ContextType = any, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = {
   generatePix?: Resolver<ResolversTypes['PixKeyResult'], ParentType, ContextType, RequireFields<MutationGeneratePixArgs, 'key' | 'value'>>;
+  login?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<MutationLoginArgs, 'email' | 'password'>>;
+  register?: Resolver<ResolversTypes['String'], ParentType, ContextType, RequireFields<MutationRegisterArgs, 'email' | 'name' | 'password'>>;
 };
 
 export type PixKeyResultResolvers<ContextType = any, ParentType extends ResolversParentTypes['PixKeyResult'] = ResolversParentTypes['PixKeyResult']> = {
-  message?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  remainingTokens?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  message?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   success?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+};
+
+export type QueryResolvers<ContextType = any, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = {
+  me?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
 };
 
 export type Resolvers<ContextType = any> = {
   Mutation?: MutationResolvers<ContextType>;
   PixKeyResult?: PixKeyResultResolvers<ContextType>;
+  Query?: QueryResolvers<ContextType>;
 };
 
